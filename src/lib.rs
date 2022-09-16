@@ -1,8 +1,12 @@
+use std::error::Error;
 use std::io::{Read};
 use std::net::{Ipv4Addr, TcpListener, TcpStream};
 use nom::character::complete::{char, digit1};
 use nom::{IResult};
 use nom::sequence::{preceded, tuple};
+use crate::http::HttpRequest;
+
+mod http;
 
 #[derive(Debug, PartialEq)]
 struct Address {
@@ -48,13 +52,17 @@ fn serve_client(stream: TcpStream) {
     read_request(&stream);
 }
 
-fn read_request(mut stream: &TcpStream) {
+fn read_request(mut stream: &TcpStream) -> Result<(), Box<dyn Error>> {
     let mut buf = [0u8; 4096];
-
     match stream.read(&mut buf) {
         Ok(size) => {
-            let request = String::from_utf8_lossy(&buf[0..size]).to_string();
-            println!("{}", request);
+            let input = std::str::from_utf8(&buf[0..size])?;
+            match HttpRequest::try_from(input) {
+                Ok(request) => {
+                    println!("Method: {}", request.method);
+                },
+                Err(e) => {}
+            }
         },
         _ => {}
     }
