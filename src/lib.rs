@@ -1,4 +1,5 @@
-use std::net::{Ipv4Addr};
+use std::io::{Read};
+use std::net::{Ipv4Addr, TcpListener, TcpStream};
 use nom::character::complete::{char, digit1};
 use nom::{IResult};
 use nom::sequence::{preceded, tuple};
@@ -7,6 +8,12 @@ use nom::sequence::{preceded, tuple};
 struct Address {
     ipv4: Option<Ipv4Addr>,
     port: Option<u16>
+}
+
+impl Address {
+    pub fn to_string(self) -> String {
+        self.ipv4.unwrap().to_string() + ":" + &self.port.unwrap().to_string()
+    }
 }
 
 fn parse_address(input: &str) -> IResult<&str, Address> {
@@ -19,11 +26,45 @@ fn parse_address(input: &str) -> IResult<&str, Address> {
     }))
 }
 
+pub fn listen(addr: &str) {
+    let result = parse_address(addr);
+    match result {
+        Ok(result) => {
+            let addr = result.1;
+            let listener = TcpListener::bind(addr.to_string()).unwrap();
+            for result in listener.incoming() {
+                match result {
+                    Ok(stream) => serve_client(stream),  // your wish is my command!
+                    _ => {}
+                }
+            }
+        },
+        _ => {}
+    }
+}
+
+fn serve_client(stream: TcpStream) {
+    println!("Incoming request!");
+    read_request(&stream);
+}
+
+fn read_request(mut stream: &TcpStream) {
+    let mut buf = [0u8; 4096];
+
+    match stream.read(&mut buf) {
+        Ok(size) => {
+            let request = String::from_utf8_lossy(&buf[0..size]).to_string();
+            println!("{}", request);
+        },
+        _ => {}
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod tests {
-    use std::net::Ipv4Addr;
+    use std::net::{Ipv4Addr, TcpStream};
     use std::str::FromStr;
     use super::{parse_address};
 
