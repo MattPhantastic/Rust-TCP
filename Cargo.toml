@@ -7,3 +7,7 @@ edition = "2021"
 
 [dependencies]
 nom = "*"
+tracing = "*"
+
+[dev-dependencies]
+tracing-test = "*"
