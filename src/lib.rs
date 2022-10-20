@@ -21,8 +21,8 @@ impl Server {
         for result in TcpListener::bind(self.address)?.incoming() {
             let mut stream = result?;
             let mut buffer = [0u8; 4096];
-            let request = deserialize(&mut stream, &mut buffer)?;
-            let response = route(&request);
+            let request = Server::deserialize(&mut stream, &mut buffer)?;
+            let response = Server::route(&request);
             response.serialize(&mut stream)?;
         }
         Ok(())

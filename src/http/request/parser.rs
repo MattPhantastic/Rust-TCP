@@ -88,8 +88,8 @@ pub fn parse_http_request_parameter(input: &str) -> IResult<&str, RequestParamet
 pub fn parse_http_version(input: &str) -> IResult<&str, Version> {
     trace!("Entering parse_http_version");
     let (input, version) = alt((
-        value(pVersion::HTTP1_0, tag("HTTP/1.0")),
-        value(pVersion::HTTP1_1, tag("HTTP/1.1")),
+        value(Version::HTTP1_0, tag("HTTP/1.0")),
+        value(Version::HTTP1_1, tag("HTTP/1.1")),
         map(alpha1, |s| Version::OTHER(s)),
     ))(input)?;
     trace!("Exiting parse_http_version");
